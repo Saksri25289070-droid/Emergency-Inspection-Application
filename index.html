@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WD Security — Admin Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --bg:#EFF4F8;--sidebar-bg:#FFFFFF;--card:#FFFFFF;
+  --border:#E2E8F0;--border-hi:#C8D6E8;
+  --fg:#1A2332;--muted:#4A5E75;--dim:#8A9AB0;
+  --blue:#2266FF;--blue-light:#EBF2FF;
+  --teal:#00E5D1;--green:#22C55E;--red:#EF4444;
+  --orange:#F59E0B;--purple:#7C3AED;
+  --grad:linear-gradient(90deg,#003087 0%,#2266FF 50%,#00E5D1 100%);
+  --grad-d:linear-gradient(135deg,#003087 0%,#2266FF 50%,#00E5D1 100%);
+  --grad-btn:linear-gradient(135deg,#2266FF 0%,#7C3AED 100%);
+  --grad-active:linear-gradient(135deg,#003087 0%,#2266FF 60%,#00E5D1 100%);
+  --shadow-sm:0 1px 3px rgba(34,102,255,.08),0 1px 2px rgba(0,0,0,.06);
+  --shadow-md:0 4px 12px rgba(34,102,255,.12),0 2px 4px rgba(0,0,0,.06);
+  --shadow-lg:0 8px 24px rgba(34,102,255,.16),0 4px 8px rgba(0,0,0,.08);
+  --sidebar-w:260px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--fg);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:#C8D6E8;border-radius:2px}
+input,select,textarea,button{font-family:inherit}
+button{cursor:pointer}
+
+/* LOADING */
+.loading-screen{position:fixed;inset:0;background:#fff;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.loading-screen.hide{display:none}
+.spinner{width:36px;height:36px;border:3px solid #E2E8F0;border-top-color:#2266FF;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:13px;font-weight:700;color:var(--muted)}
+
+/* LOGIN */
+#loginPage{position:fixed;inset:0;background:linear-gradient(135deg,#001840 0%,#002d78 50%,#1a56cc 100%);display:flex;align-items:center;justify-content:center;z-index:500}
+#loginPage.hide{display:none}
+.login-box{background:#fff;border-radius:20px;padding:40px;width:400px;max-width:90vw;box-shadow:var(--shadow-lg)}
+.login-logo{width:52px;height:52px;background:var(--grad-btn);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+.login-h1{font-size:22px;font-weight:900;text-align:center;color:var(--fg);letter-spacing:-.5px;margin-bottom:4px}
+.login-sub{font-size:12px;color:var(--dim);text-align:center;margin-bottom:28px;line-height:1.6}
+.lf{margin-bottom:14px}
+.lf label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:6px}
+.lf input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;color:var(--fg);outline:none;transition:border-color .2s,box-shadow .2s}
+.lf input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(34,102,255,.1)}
+.btn-login{width:100%;padding:14px;background:var(--grad-active);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:800;margin-top:4px;transition:opacity .15s,transform .1s;cursor:pointer}
+.btn-login:active{opacity:.85;transform:scale(.98)}
+.btn-login:disabled{opacity:.4;cursor:not-allowed}
+.login-err{font-size:11px;color:var(--red);text-align:center;margin-top:8px;min-height:16px}
+.role-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.role-superadmin{background:rgba(124,58,237,.1);color:var(--purple);border:1px solid rgba(124,58,237,.2)}
+.role-admin{background:rgba(34,102,255,.1);color:var(--blue);border:1px solid rgba(34,102,255,.2)}
+
+/* TOPBAR */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:200;background:#fff;border-bottom:1px solid var(--border)}
+.topbar-rainbow{height:4px;background:linear-gradient(90deg,#003087 0%,#0057B8 20%,#2266FF 40%,#00AAFF 60%,#00E5D1 80%,#22C55E 100%)}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:52px}
+.topbar-brand{display:flex;align-items:center;gap:10px}
+.topbar-logo{width:30px;height:30px;border-radius:8px;background:var(--grad-btn);display:flex;align-items:center;justify-content:center}
+.topbar-title{font-size:14px;font-weight:800;color:var(--fg);letter-spacing:-.3px}
+.topbar-sub{font-size:9px;font-weight:700;color:var(--dim);letter-spacing:.5px;text-transform:uppercase}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.tb-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:all .15s;position:relative}
+.tb-btn:hover{background:var(--blue-light);border-color:rgba(34,102,255,.3);color:var(--blue)}
+.notif-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:#EF4444;border:1.5px solid #fff;display:none}
+.tb-avatar{width:34px;height:34px;border-radius:8px;background:var(--grad-btn);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;cursor:default}
+.realtime-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:#16A34A;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);padding:4px 10px;border-radius:20px}
+.rt-dot{width:5px;height:5px;border-radius:50%;background:#22C55E;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,197,94,.4)}70%{opacity:.7;box-shadow:0 0 0 4px rgba(34,197,94,0)}}
+
+/* SIDEBAR */
+.sidebar{position:fixed;left:0;top:56px;bottom:0;width:var(--sidebar-w);background:var(--sidebar-bg);border-right:1px solid var(--border);overflow-y:auto;z-index:100;padding:10px 0 60px}
+.sidebar::-webkit-scrollbar{display:none}
+.nav-sec-lbl{font-size:9px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--dim);padding:14px 16px 5px;display:flex;align-items:center;gap:8px}
+.nav-sec-lbl::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;margin:1px 8px;border-radius:10px;cursor:pointer;border:none;background:transparent;width:calc(100% - 16px);text-align:left;transition:all .18s}
+.nav-item:hover{background:var(--blue-light)}
+.nav-item.active{background:var(--grad-active);box-shadow:0 4px 14px rgba(34,102,255,.3)}
+.nav-icon{width:30px;height:30px;border-radius:8px;background:rgba(34,102,255,.08);border:1px solid rgba(34,102,255,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s}
+.nav-item.active .nav-icon{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.25)}
+.nav-item:hover:not(.active) .nav-icon{background:rgba(34,102,255,.12);border-color:rgba(34,102,255,.2)}
+.nav-label{font-size:13px;font-weight:700;color:var(--fg);transition:color .18s;flex:1}
+.nav-item.active .nav-label{color:#fff}
+.nav-item:hover:not(.active) .nav-label{color:var(--blue)}
+.nav-badge{font-size:9px;font-weight:800;padding:2px 7px;border-radius:20px;background:rgba(34,102,255,.1);color:var(--blue);border:1px solid rgba(34,102,255,.2)}
+.nav-item.active .nav-badge{background:rgba(255,255,255,.2);color:#fff;border-color:rgba(255,255,255,.3)}
+.nav-divider{height:1px;background:var(--border);margin:8px 14px}
+/* Superadmin-only nav items */
+.nav-superadmin-only{transition:opacity .2s}
+.nav-superadmin-only.hidden{opacity:.3;pointer-events:none}
+
+/* MAIN */
+.main{margin-left:var(--sidebar-w);padding-top:56px;min-height:100vh}
+.page{display:none;padding:28px;animation:fadeUp .3s ease forwards}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.page-hdr{margin-bottom:24px}
+.page-eyebrow{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--blue);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.page-title{font-size:26px;font-weight:900;color:var(--fg);letter-spacing:-1px;line-height:1.1}
+.page-sub{font-size:13px;color:var(--muted);margin-top:5px}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;position:relative;overflow:hidden;box-shadow:var(--shadow-sm);transition:all .2s;cursor:pointer}
+.kpi-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--grad)}
+.kpi-lbl{font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.kpi-val{font-size:32px;font-weight:900;color:var(--fg);letter-spacing:-2px;line-height:1}
+.kpi-sub{font-size:11px;font-weight:600;color:var(--dim);margin-top:5px}
+.kpi-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:9px;background:rgba(34,102,255,.07);border:1px solid rgba(34,102,255,.1);display:flex;align-items:center;justify-content:center}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--shadow-sm);margin-bottom:14px}
+.card-title{font-size:13px;font-weight:800;color:var(--fg);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{background:#F8FAFC;padding:9px 12px;text-align:left;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--border)}
+tbody tr{border-bottom:1px solid #F1F5F9;transition:background .15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:#F8FAFC}
+tbody td{padding:10px 12px;color:var(--fg)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase}
+.bg{background:rgba(34,197,94,.1);color:#16A34A;border:1px solid rgba(34,197,94,.2)}
+.bb{background:rgba(34,102,255,.1);color:var(--blue);border:1px solid rgba(34,102,255,.2)}
+.br{background:rgba(239,68,68,.1);color:#DC2626;border:1px solid rgba(239,68,68,.2)}
+.bo{background:rgba(245,158,11,.1);color:#D97706;border:1px solid rgba(245,158,11,.2)}
+.bd{background:rgba(138,154,176,.1);color:var(--dim);border:1px solid rgba(138,154,176,.2)}
+.bp{background:rgba(124,58,237,.1);color:var(--purple);border:1px solid rgba(124,58,237,.2)}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg.full{grid-column:1/-1}
+.fg label{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}
+.fi,.fs,.ft{padding:10px 12px;border-radius:9px;border:1.5px solid var(--border);background:#fff;font-family:'Manrope',sans-serif;font-size:13px;font-weight:500;color:var(--fg);outline:none;transition:all .18s;-webkit-appearance:none;appearance:none}
+.fi:focus,.fs:focus,.ft:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(34,102,255,.1)}
+.fi:disabled,.fs:disabled{background:#F8FAFC;color:var(--dim);cursor:not-allowed}
+.fs{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238A9AB0' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+.fs option{background:#fff}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 18px;border-radius:9px;font-family:'Manrope',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .18s}
+.btn-primary{background:var(--grad-active);color:#fff;box-shadow:0 4px 12px rgba(34,102,255,.3)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(34,102,255,.35)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-secondary{background:#F1F5F9;color:var(--fg);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--blue-light);border-color:rgba(34,102,255,.3);color:var(--blue)}
+.btn-danger{background:rgba(239,68,68,.08);color:#DC2626;border:1px solid rgba(239,68,68,.2)}
+.btn-danger:hover{background:rgba(239,68,68,.14)}
+.btn-success{background:rgba(34,197,94,.1);color:#16A34A;border:1px solid rgba(34,197,94,.2)}
+.btn-warn{background:rgba(245,158,11,.1);color:#D97706;border:1px solid rgba(245,158,11,.25)}
+.btn-purple{background:rgba(124,58,237,.1);color:var(--purple);border:1px solid rgba(124,58,237,.2)}
+.btn-purple:hover{background:rgba(124,58,237,.18)}
+.btn-sm{padding:6px 12px;font-size:11px;border-radius:7px}
+
+/* SEARCH */
+.search-wrap{position:relative}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none}
+.search-input{padding:9px 12px 9px 34px;border-radius:9px;border:1.5px solid var(--border);background:#fff;font-family:'Manrope',sans-serif;font-size:13px;color:var(--fg);outline:none;transition:all .18s;width:100%}
+.search-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(34,102,255,.1)}
+
+.filter-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+
+/* TOGGLE */
+.toggle{width:40px;height:22px;background:#E2E8F0;border-radius:11px;cursor:pointer;position:relative;transition:background .2s;border:none;flex-shrink:0}
+.toggle.on{background:var(--blue)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle.on::after{transform:translateX(18px)}
+
+/* CHARTS */
+.donut-wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.donut-legend{flex:1;display:flex;flex-direction:column;gap:9px;min-width:140px}
+.leg-item{display:flex;align-items:center;gap:8px}
+.leg-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.leg-name{font-size:12px;color:var(--muted);flex:1}
+.leg-val{font-size:14px;font-weight:800;color:var(--fg)}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.bar-lbl{font-size:11px;font-weight:700;color:var(--fg);width:140px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;height:8px;background:#E2E8F0;border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;background:var(--grad);border-radius:4px;transition:width .6s ease}
+.bar-val{font-size:11px;font-weight:700;color:var(--muted);width:30px;text-align:right;flex-shrink:0}
+
+/* FEED */
+.feed-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #F1F5F9}
+.feed-item:last-child{border-bottom:none}
+.feed-dot-wrap{display:flex;flex-direction:column;align-items:center}
+.feed-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.feed-line{width:1px;background:var(--border);flex:1;margin-top:4px}
+.feed-content{flex:1}
+.feed-title{font-size:13px;font-weight:700;color:var(--fg);margin-bottom:2px}
+.feed-sub{font-size:11px;color:var(--muted);line-height:1.5}
+.feed-time{font-size:10px;font-weight:600;color:var(--dim);margin-top:3px}
+
+/* USER CARD */
+.user-card{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:9px;transition:all .18s}
+.user-card:hover{box-shadow:var(--shadow-md);border-color:rgba(34,102,255,.2)}
+.user-avatar{width:40px;height:40px;border-radius:10px;background:var(--grad-btn);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0}
+.user-avatar.sa{background:linear-gradient(135deg,#7C3AED,#2266FF)}
+
+/* ADMIN ACCOUNT CARD */
+.admin-acc-card{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:10px;transition:all .18s;position:relative;overflow:hidden}
+.admin-acc-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.admin-acc-card.superadmin::before{background:linear-gradient(180deg,#7C3AED,#2266FF)}
+.admin-acc-card.admin-role::before{background:linear-gradient(180deg,#2266FF,#00E5D1)}
+.admin-acc-card:hover{box-shadow:var(--shadow-md);border-color:rgba(34,102,255,.2)}
+.admin-avatar{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;flex-shrink:0}
+.admin-avatar.sa{background:linear-gradient(135deg,#7C3AED,#2266FF)}
+.admin-avatar.ad{background:linear-gradient(135deg,#2266FF,#00E5D1)}
+.admin-info{flex:1}
+.admin-name{font-size:14px;font-weight:800;color:var(--fg)}
+.admin-meta{font-size:11px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:8px}
+.you-badge{font-size:9px;font-weight:800;padding:1px 7px;border-radius:20px;background:rgba(34,197,94,.1);color:#16A34A;border:1px solid rgba(34,197,94,.2);text-transform:uppercase;letter-spacing:.5px}
+
+/* PERMISSION MATRIX */
+.perm-matrix{width:100%;border-collapse:collapse;font-size:12px;margin-top:16px}
+.perm-matrix th{padding:8px 12px;text-align:left;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--dim);border-bottom:2px solid var(--border);background:#F8FAFC}
+.perm-matrix td{padding:10px 12px;border-bottom:1px solid #F1F5F9;vertical-align:middle}
+.perm-matrix tr:last-child td{border-bottom:none}
+.perm-matrix tr:hover td{background:#F8FAFC}
+.perm-check{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.perm-check.yes{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2)}
+.perm-check.no{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15)}
+.perm-group-row td{background:rgba(34,102,255,.03);font-weight:700;font-size:11px;color:var(--blue);padding:7px 12px;border-bottom:1px solid rgba(34,102,255,.08)}
+
+/* CHECKLIST */
+.cl-section-card{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden}
+.cl-sec-hdr{display:flex;align-items:center;gap:10px;padding:14px 16px;background:#F8FAFC;border-bottom:1px solid var(--border)}
+.cl-sec-title{font-size:13px;font-weight:800;color:var(--fg);flex:1}
+.cl-item-row{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid #F1F5F9}
+.cl-item-row:last-child{border-bottom:none}
+.cl-item-text{flex:1;font-size:13px;color:var(--fg)}
+.cl-add-row{padding:10px 16px;display:flex;gap:8px}
+.cl-add-input{flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Manrope',sans-serif;font-size:13px;color:var(--fg);outline:none;transition:border-color .2s}
+.cl-add-input:focus{border-color:var(--blue)}
+
+/* SHIFT */
+.shift-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:14px}
+.shift-time-badge{min-width:100px;text-align:center;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:800;color:var(--blue);background:var(--blue-light);border:1px solid rgba(34,102,255,.2)}
+
+/* SEED */
+.seed-prog-bar{background:#F8FAFC;border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:14px;display:none}
+.seed-prog-bar.show{display:block}
+.seed-prog-track{height:6px;background:#E2E8F0;border-radius:3px;overflow:hidden;margin:8px 0 5px}
+.seed-prog-fill{height:100%;background:linear-gradient(90deg,#2266FF,#00E5D1);border-radius:3px;transition:width .3s ease;width:0%}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:800;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal-box{background:#fff;border-radius:16px;padding:28px;width:100%;max-width:480px;box-shadow:var(--shadow-lg);transform:translateY(14px) scale(.97);transition:transform .22s cubic-bezier(.4,0,.2,1)}
+.modal-overlay.open .modal-box{transform:none}
+.modal-box.wide{max-width:640px}
+.modal-title{font-size:17px;font-weight:800;color:var(--fg);margin-bottom:5px;letter-spacing:-.3px}
+.modal-sub{font-size:12px;color:var(--muted);margin-bottom:20px}
+.modal-footer{display:flex;gap:9px;justify-content:flex-end;margin-top:18px}
+
+/* TABS */
+.tabs{display:flex;gap:4px;background:#F1F5F9;padding:3px;border-radius:9px;margin-bottom:18px}
+.tab{flex:1;padding:7px 10px;border-radius:7px;border:none;background:transparent;font-family:'Manrope',sans-serif;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;transition:all .15s}
+.tab.active{background:#fff;color:var(--blue);box-shadow:var(--shadow-sm)}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;z-index:999;background:#1A2332;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:8px;transform:translateY(60px);opacity:0;transition:all .3s cubic-bezier(.4,0,.2,1)}
+.toast.show{transform:none;opacity:1}
+.toast.ok{border-left:4px solid var(--green)}
+.toast.err{border-left:4px solid var(--red)}
+.toast.info{border-left:4px solid var(--blue)}
+.toast.warn{border-left:4px solid var(--orange)}
+
+/* PERMISSION LOCK */
+.perm-lock{background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.perm-lock-icon{width:32px;height:32px;border-radius:8px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.perm-lock-text{font-size:12px;font-weight:700;color:#D97706}
+
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .main{margin-left:0}
+  .form-grid,.grid-2{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">กำลังเชื่อมต่อ Firebase...</div>
+</div>
+
+<!-- LOGIN -->
+<div id="loginPage">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+    <div class="login-h1">Admin Portal</div>
+    <div class="login-sub">Emergency Door Management System<br>Western Digital — Security MFM</div>
+    <div class="lf"><label>Username</label><input type="text" id="adminUser" placeholder="admin" autocomplete="username"></div>
+    <div class="lf"><label>Password</label><input type="password" id="adminPass" placeholder="••••••••" autocomplete="current-password"></div>
+    <div class="login-err" id="loginErr"></div>
+    <button class="btn-login" id="loginBtn" onclick="doAdminLogin()">เข้าสู่ระบบ Admin</button>
+    <div style="margin-top:16px;padding:12px 14px;background:#F8FAFC;border-radius:9px;font-size:11px;color:var(--dim);line-height:1.6">
+      <strong style="color:var(--fg)">Default:</strong> admin / admin1234 (superadmin)<br>
+      กด Seed ข้อมูลครั้งแรก แล้วเปลี่ยนรหัสใน Admin Accounts
+    </div>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar" id="mainTopbar" style="display:none">
+  <div class="topbar-rainbow"></div>
+  <div class="topbar-inner">
+    <div class="topbar-brand">
+      <div class="topbar-logo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+      <div><div class="topbar-title">WD Security Portal</div><div class="topbar-sub" id="topbarRoleSub">Admin Dashboard</div></div>
+    </div>
+    <div class="topbar-right">
+      <div class="realtime-badge"><div class="rt-dot"></div>Realtime</div>
+      <div id="currentRoleChip" class="role-chip role-admin" style="font-size:10px">Admin</div>
+      <button class="tb-btn" onclick="showPage('pg-activity')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="notif-dot" id="notifDot"></span>
+      </button>
+      <button class="tb-btn" onclick="confirmLogout()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+      <div class="tb-avatar" id="tbAvatar">SK</div>
+    </div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="mainSidebar" style="display:none">
+  <div class="nav-sec-lbl">ภาพรวม</div>
+  <button class="nav-item active" id="nav-dashboard" onclick="showPage('pg-dashboard')">
+    <div class="nav-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#93C5FD" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+    <span class="nav-label">Dashboard</span>
+    <span class="nav-badge" id="badge-pending">0</span>
+  </button>
+  <div class="nav-divider"></div>
+  <div class="nav-sec-lbl">จัดการระบบ</div>
+  <button class="nav-item" id="nav-doors" onclick="showPage('pg-doors')">
+    <div class="nav-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#93C5FD" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+    <span class="nav-label">จัดการประตู</span>
+    <span class="nav-badge" id="badge-doors">0</span>
+  </button>
+  <button class="nav-item" id="nav-users" onclick="showPage('pg-users')">
+    <div class="nav-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#93C5FD" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg></div>
+    <span class="nav-label">Inspector Users</span>
+    <span class="nav-badge" id="badge-users">0</span>
+  </button>
+  <button class="nav-item" id="nav-checklists" onclick="showPage('pg-checklists')">
+    <div class="nav-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#93C5FD" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+    <span class="nav-label">Checklist Items</span>
+  </button>
+  <button class="nav-item" id="nav-shifts" onclick="showPage('pg-shifts')">
+    <div class="nav-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#93C5FD" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+    <span class="nav-label">Shift Time</span>
+  </button>
+  <button class="nav-item" id="nav-qr" onclick="showPage('pg-qr')">
+    <div class="nav-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#93C5FD" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5" height="5" rx="1"/><rect x="16" y="3" width="5" height="5" rx="1"/><rect x="3" y="16" width="5" height="5" rx="1"/><path d="M21 16h-3v3M21 21h-3M16 16v5"/></svg></div>
+    <span class="nav-label">QR Tags</span>
+  </button>
+  <div class="nav-divider"></div>
+  <div class="nav-sec-lbl">ตรวจสอบ</div>
+  <button class="nav-item" id="nav-submissions" onclick="showPage('pg-submissions')">
+    <div class="nav-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#93C5FD" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+    <span class="nav-label">ผลการตรวจ</span>
+    <span class="nav-badge" id="badge-subs">0</span>
+  </button>
+  <button class="nav-item" id="nav-activity" onclick="showPage('pg-activity')">
+    <div class="nav-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#93C5FD" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+    <span class="nav-label">Activity Feed</span>
+    <span class="nav-badge" style="background:rgba(239,68,68,.1);color:#DC2626;border-color:rgba(239,68,68,.2)" id="badge-alert">0</span>
+  </button>
+  <div class="nav-divider"></div>
+  <!-- Superadmin-only section -->
+  <div class="nav-sec-lbl nav-superadmin-only" id="nav-admin-section">ระบบ (Superadmin)</div>
+  <button class="nav-item nav-superadmin-only" id="nav-admins" onclick="showPage('pg-admins')">
+    <div class="nav-icon" style="background:rgba(124,58,237,.1);border-color:rgba(124,58,237,.18)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C4B5FD" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+    <span class="nav-label">Admin Accounts</span>
+    <span class="nav-badge" id="badge-admins" style="background:rgba(124,58,237,.1);color:var(--purple);border-color:rgba(124,58,237,.2)">0</span>
+  </button>
+  <button class="nav-item nav-superadmin-only" id="nav-settings" onclick="showPage('pg-settings')">
+    <div class="nav-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#93C5FD" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>
+    <span class="nav-label">ตั้งค่าระบบ</span>
+  </button>
+</div>
+
+<!-- MAIN -->
+<div class="main" id="mainContent" style="display:none">
+
+<!-- DASHBOARD -->
+<div class="page active" id="pg-dashboard">
+  <div class="page-hdr">
+    <div class="page-eyebrow"><div class="rt-dot"></div>Live Monitoring</div>
+    <div class="page-title">ภาพรวมระบบประตูฉุกเฉิน</div>
+    <div class="page-sub">อัปเดต Realtime — <span id="lastUpdate">--</span></div>
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi-card" onclick="showPage('pg-doors')"><div class="kpi-lbl">ประตูทั้งหมด</div><div class="kpi-val" id="kpi-doors">0</div><div class="kpi-sub" id="kpi-doors-sub">--</div><div class="kpi-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2266FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div></div>
+    <div class="kpi-card" onclick="showPage('pg-submissions')"><div class="kpi-lbl">ตรวจวันนี้</div><div class="kpi-val" id="kpi-today" style="color:#16A34A">0</div><div class="kpi-sub" id="kpi-today-sub">Realtime</div><div class="kpi-icon" style="background:rgba(34,197,94,.07);border-color:rgba(34,197,94,.12)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+    <div class="kpi-card" onclick="showPage('pg-activity')"><div class="kpi-lbl">ไม่ผ่าน/เงื่อนไข</div><div class="kpi-val" id="kpi-fail" style="color:#DC2626">0</div><div class="kpi-sub">ต้องดำเนินการ</div><div class="kpi-icon" style="background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.12)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div></div>
+    <div class="kpi-card" onclick="showPage('pg-users')"><div class="kpi-lbl">Inspector Active</div><div class="kpi-val" id="kpi-users" style="color:#7C3AED">0</div><div class="kpi-sub">ในระบบ</div><div class="kpi-icon" style="background:rgba(124,58,237,.07);border-color:rgba(124,58,237,.12)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg></div></div>
+  </div>
+  <div class="grid-2">
+    <div class="card"><div class="card-title">สถานะประตูวันนี้</div><div class="donut-wrap"><svg id="donutSvg" width="110" height="110" viewBox="0 0 110 110" style="flex-shrink:0"></svg><div class="donut-legend" id="donutLegend"></div></div></div>
+    <div class="card"><div class="card-title">ความคืบหน้าตามโซน</div><div id="barChart"></div></div>
+  </div>
+  <div class="card"><div class="card-title">ผลการตรวจล่าสุด</div><div id="recentFeed" style="max-height:280px;overflow-y:auto"></div></div>
+</div>
+
+<!-- DOORS -->
+<div class="page" id="pg-doors">
+  <div class="page-hdr"><div class="page-eyebrow">จัดการ</div><div class="page-title">จัดการประตูฉุกเฉิน</div></div>
+  <div class="card" id="doorFormCard">
+    <div class="card-title" id="doorFormTitle">เพิ่มประตูใหม่</div>
+    <div class="form-grid">
+      <div class="fg"><label>รหัสประตู *</label><input class="fi" id="f-code" placeholder="เช่น P1001"></div>
+      <div class="fg"><label>ชื่อประตู *</label><input class="fi" id="f-name" placeholder="เช่น Fire Exit Door Phase1 #1"></div>
+      <div class="fg"><label>โซน *</label><input class="fi" id="f-zone" placeholder="เช่น Phase#1" list="zone-list"><datalist id="zone-list"></datalist></div>
+      <div class="fg"><label>ประเภทประตู</label><select class="fs" id="f-type"><option>Fire Exit Door</option><option>Emergency Exit</option><option>Stairwell Door</option></select></div>
+      <div class="fg full"><label>ตำแหน่ง</label><input class="fi" id="f-location" placeholder="เช่น ชั้น 1 ทางออกฝั่งเหนือ"></div>
+    </div>
+    <div style="display:flex;gap:9px;margin-top:14px"><button class="btn btn-primary" onclick="saveDoor()">บันทึก</button><button class="btn btn-secondary" onclick="clearDoorForm()">ล้างฟอร์ม</button></div>
+  </div>
+  <div class="card">
+    <div class="card-title" style="justify-content:space-between"><span>รายการประตูทั้งหมด (<span id="doorCount">0</span>)</span><button class="btn btn-secondary btn-sm" onclick="exportDoorCSV()">Export CSV</button></div>
+    <div class="filter-row">
+      <div class="search-wrap" style="flex:1;min-width:180px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8A9AB0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="search-input" placeholder="ค้นหา..." id="doorSearch" oninput="renderDoorTable()"></div>
+      <select class="fs" style="width:150px" id="doorZoneFilter" onchange="renderDoorTable()"><option value="">ทุกโซน</option></select>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>รหัส</th><th>ชื่อประตู</th><th>โซน</th><th>ประเภท</th><th>สถานะ</th><th>จัดการ</th></tr></thead><tbody id="doorTableBody"></tbody></table></div>
+  </div>
+</div>
+
+<!-- USERS -->
+<div class="page" id="pg-users">
+  <div class="page-hdr"><div class="page-eyebrow">Inspector</div><div class="page-title">จัดการ Inspector Users</div></div>
+  <div class="card" id="userFormCard" style="display:none">
+    <div class="card-title" id="userFormTitle">เพิ่ม Inspector ใหม่</div>
+    <div class="form-grid">
+      <div class="fg"><label>Username *</label><input class="fi" id="u-username" placeholder="inspector1"></div>
+      <div class="fg"><label>Password *</label><input class="fi" id="u-password" type="password" placeholder="รหัสผ่าน"></div>
+      <div class="fg"><label>ชื่อ-นามสกุล *</label><input class="fi" id="u-name" placeholder="สมชาย ใจดี"></div>
+      <div class="fg"><label>รหัสพนักงาน</label><input class="fi" id="u-empid" placeholder="EMP001"></div>
+      <div class="fg full"><label>โซนที่รับผิดชอบ (คั่นด้วย ,)</label><input class="fi" id="u-zones" placeholder="Phase#1,Phase#2 หรือเว้นว่างเพื่อดูทุกโซน"></div>
+    </div>
+    <div style="display:flex;gap:9px;margin-top:14px"><button class="btn btn-primary" onclick="saveUser()">บันทึก</button><button class="btn btn-secondary" onclick="cancelUserForm()">ยกเลิก</button></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div style="font-size:13px;font-weight:700;color:var(--muted)">Inspector ทั้งหมด (<span id="userCount">0</span> คน)</div>
+    <button class="btn btn-primary btn-sm" onclick="openUserForm()">+ เพิ่ม Inspector</button>
+  </div>
+  <div id="userList"></div>
+</div>
+
+<!-- CHECKLISTS -->
+<div class="page" id="pg-checklists">
+  <div class="page-hdr"><div class="page-eyebrow">Checklist</div><div class="page-title">จัดการ Checklist Items</div></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div style="font-size:13px;color:var(--muted)">หมวดหมู่ทั้งหมด</div>
+    <button class="btn btn-primary btn-sm" onclick="openAddSection()">+ เพิ่มหมวดหมู่</button>
+  </div>
+  <div id="checklistBuilder"></div>
+  <div style="margin-top:16px"><button class="btn btn-primary" onclick="saveAllChecklists()">บันทึก Checklist ทั้งหมดไปยัง Firestore</button></div>
+</div>
+
+<!-- SHIFTS -->
+<div class="page" id="pg-shifts">
+  <div class="page-hdr"><div class="page-eyebrow">Shift Time</div><div class="page-title">กำหนดเวลากะ</div></div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-title">กะการทำงาน</div>
+    <div id="shiftList"></div>
+    <div style="display:flex;gap:9px;margin-top:14px"><button class="btn btn-primary" onclick="saveShifts()">บันทึกไปยัง Firestore</button><button class="btn btn-secondary" onclick="addShift()">+ เพิ่มกะ</button></div>
+  </div>
+  <div class="card">
+    <div class="card-title">ข้อมูลติดต่อ Admin</div>
+    <div class="form-grid">
+      <div class="fg"><label>ชื่อ Admin</label><input class="fi" id="admin-name"></div>
+      <div class="fg"><label>ตำแหน่ง</label><input class="fi" id="admin-role-field"></div>
+      <div class="fg full"><label>ช่องทางติดต่อ</label><input class="fi" id="admin-contact"></div>
+    </div>
+    <div style="margin-top:12px"><button class="btn btn-primary" onclick="saveAdminContact()">บันทึก</button></div>
+  </div>
+</div>
+
+<!-- QR TAGS -->
+<div class="page" id="pg-qr">
+  <div class="page-hdr"><div class="page-eyebrow">QR Tags</div><div class="page-title">สร้าง QR Code Tags</div></div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-title">ตั้งค่า Inspector Form URL</div>
+    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+      <div class="fg" style="flex:1;min-width:260px"><label>Base URL</label><input class="fi" id="qr-base-url" value="https://wdsecurity.wd.com/inspect"></div>
+      <div class="fg" style="width:160px"><label>Parameter</label><select class="fs" id="qr-param"><option value="door">?door=CODE</option><option value="id">?id=CODE</option></select></div>
+      <button class="btn btn-secondary" onclick="refreshQR()">อัปเดต</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title" style="justify-content:space-between">
+      <span>เลือกประตูสร้าง QR</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm" onclick="selectAllQR()">เลือกทั้งหมด</button>
+        <button class="btn btn-primary btn-sm" onclick="printSelectedQR()">พิมพ์ (<span id="qrSelectedCount">0</span>)</button>
+      </div>
+    </div>
+    <div class="filter-row">
+      <div class="search-wrap" style="flex:1"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8A9AB0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="search-input" placeholder="ค้นหา..." id="qrSearch" oninput="renderQRGrid()"></div>
+      <select class="fs" style="width:150px" id="qrZoneFilter" onchange="renderQRGrid()"><option value="">ทุกโซน</option></select>
+    </div>
+    <div id="qrGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:8px"></div>
+  </div>
+</div>
+
+<!-- SUBMISSIONS -->
+<div class="page" id="pg-submissions">
+  <div class="page-hdr"><div class="page-eyebrow"><div class="rt-dot"></div>Realtime</div><div class="page-title">ผลการตรวจสอบ</div></div>
+  <div class="card">
+    <div class="filter-row">
+      <select class="fs" style="width:150px" id="subZoneFilter" onchange="renderSubsTable()"><option value="">ทุกโซน</option></select>
+      <select class="fs" style="width:130px" id="subResultFilter" onchange="renderSubsTable()"><option value="">ทุกผล</option><option value="ok">ผ่าน</option><option value="cond">เงื่อนไข</option><option value="fail">ไม่ผ่าน</option></select>
+      <div class="search-wrap" style="flex:1"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8A9AB0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="search-input" placeholder="ค้นหา..." id="subSearch" oninput="renderSubsTable()"></div>
+      <button class="btn btn-secondary btn-sm" onclick="exportSubsCSV()">Export CSV</button>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>เวลา</th><th>Inspector</th><th>รหัสประตู</th><th>โซน</th><th>กะ</th><th>ผล</th><th>%ตอบ</th></tr></thead><tbody id="subsTableBody"></tbody></table></div>
+    <div id="subCount" style="font-size:11px;color:var(--dim);margin-top:9px;text-align:right"></div>
+  </div>
+</div>
+
+<!-- ACTIVITY -->
+<div class="page" id="pg-activity">
+  <div class="page-hdr"><div class="page-eyebrow"><div class="rt-dot"></div>Real-time</div><div class="page-title">Activity Feed</div></div>
+  <div class="tabs" id="actTabs">
+    <button class="tab active" onclick="filterActivity(this,'all')">ทั้งหมด</button>
+    <button class="tab" onclick="filterActivity(this,'ok')">ผ่าน</button>
+    <button class="tab" onclick="filterActivity(this,'cond')">เงื่อนไข</button>
+    <button class="tab" onclick="filterActivity(this,'fail')">ไม่ผ่าน</button>
+  </div>
+  <div class="card" id="activityFeed"></div>
+</div>
+
+<!-- ── ADMIN ACCOUNTS PAGE (Superadmin only) ── -->
+<div class="page" id="pg-admins">
+  <div class="page-hdr">
+    <div class="page-eyebrow">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Superadmin Only
+    </div>
+    <div class="page-title">Admin Accounts</div>
+    <div class="page-sub">จัดการบัญชี Admin ทั้งหมด — เฉพาะ Superadmin เท่านั้น</div>
+  </div>
+
+  <!-- PERMISSION MATRIX INFO -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2266FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Permission Matrix — สิทธิ์แต่ละ Role
+    </div>
+    <table class="perm-matrix">
+      <thead><tr><th>ฟีเจอร์</th><th style="text-align:center;color:var(--purple)">Superadmin</th><th style="text-align:center;color:var(--blue)">Admin</th></tr></thead>
+      <tbody>
+        <tr class="perm-group-row"><td colspan="3">Dashboard & ดูข้อมูล</td></tr>
+        <tr><td>Dashboard, ผลการตรวจ, Activity Feed</td><td style="text-align:center"><div class="perm-check yes" style="margin:auto"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></td><td style="text-align:center"><div class="perm-check yes" style="margin:auto"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></td></tr>
+        <tr class="perm-group-row"><td colspan="3">จัดการข้อมูล</td></tr>
+        <tr><td>จัดการประตู, Inspector Users, Checklist, Shift, QR</td><td style="text-align:center"><div class="perm-check yes" style="margin:auto"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></td><td style="text-align:center"><div class="perm-check yes" style="margin:auto"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></td></tr>
+        <tr class="perm-group-row"><td colspan="3">การดูแลระบบ</td></tr>
+        <tr><td>ตั้งค่าระบบ, Seed ข้อมูล</td><td style="text-align:center"><div class="perm-check yes" style="margin:auto"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></td><td style="text-align:center"><div class="perm-check no" style="margin:auto"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></td></tr>
+        <tr><td>Admin Accounts (เพิ่ม/แก้ไข/ลบ Admin)</td><td style="text-align:center"><div class="perm-check yes" style="margin:auto"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></td><td style="text-align:center"><div class="perm-check no" style="margin:auto"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ADMIN FORM -->
+  <div class="card" id="adminAccFormCard" style="display:none">
+    <div class="card-title" id="adminAccFormTitle">เพิ่ม Admin ใหม่</div>
+    <div class="form-grid">
+      <div class="fg"><label>Username *</label><input class="fi" id="aa-username" placeholder="เช่น supervisor1"></div>
+      <div class="fg"><label>Password *</label><input class="fi" id="aa-password" type="password" placeholder="รหัสผ่าน (อย่างน้อย 6 ตัว)"></div>
+      <div class="fg"><label>ชื่อ-นามสกุล *</label><input class="fi" id="aa-name" placeholder="เช่น Sunpit Tanoobun"></div>
+      <div class="fg"><label>Role *</label>
+        <select class="fs" id="aa-role">
+          <option value="admin">Admin — จัดการข้อมูลทั่วไป</option>
+          <option value="superadmin">Superadmin — จัดการระบบทั้งหมด</option>
+        </select>
+      </div>
+      <div class="fg"><label>ตำแหน่งงาน</label><input class="fi" id="aa-jobtitle" placeholder="เช่น Security Supervisor"></div>
+      <div class="fg"><label>อีเมล</label><input class="fi" id="aa-email" placeholder="เช่น supervisor@wdc.com" type="email"></div>
+    </div>
+    <div style="margin-top:6px;padding:10px 12px;background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.15);border-radius:8px;font-size:11px;color:#D97706">
+      <strong>หมายเหตุ:</strong> Password จะถูกเก็บใน Firestore ควรเปลี่ยนเป็น Firebase Auth ในระบบ Production
+    </div>
+    <div style="display:flex;gap:9px;margin-top:14px">
+      <button class="btn btn-primary" onclick="saveAdminAccount()">บันทึก Admin Account</button>
+      <button class="btn btn-secondary" onclick="cancelAdminAccForm()">ยกเลิก</button>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div style="font-size:13px;font-weight:700;color:var(--muted)">Admin ทั้งหมด (<span id="adminAccCount">0</span> คน)</div>
+    <button class="btn btn-purple" onclick="openAdminAccForm()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      เพิ่ม Admin Account
+    </button>
+  </div>
+  <div id="adminAccList"></div>
+</div>
+
+<!-- SETTINGS -->
+<div class="page" id="pg-settings">
+  <div class="page-hdr"><div class="page-eyebrow">ระบบ</div><div class="page-title">ตั้งค่าระบบ</div></div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">สถานะ Firestore</div>
+      <div style="display:flex;flex-direction:column;gap:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #F1F5F9"><div style="font-size:13px;font-weight:700">การเชื่อมต่อ</div><span class="badge bg">เชื่อมต่อแล้ว</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #F1F5F9"><div style="font-size:13px;font-weight:700">ประตูในระบบ</div><span class="badge bb" id="settingDoorCount">0 รายการ</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #F1F5F9"><div style="font-size:13px;font-weight:700">Inspector Users</div><span class="badge bp" id="settingUserCount">0 คน</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 0"><div style="font-size:13px;font-weight:700">Project</div><span class="badge bd">smart-logistics-system-v1</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Firestore Collections</div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <div style="padding:8px 12px;background:#F8FAFC;border-radius:8px;font-size:11px;font-weight:700;color:var(--fg);display:flex;justify-content:space-between"><span>door_users</span><span style="color:var(--muted)">Inspector accounts</span></div>
+        <div style="padding:8px 12px;background:#F8FAFC;border-radius:8px;font-size:11px;font-weight:700;color:var(--fg);display:flex;justify-content:space-between"><span>door_doors</span><span style="color:var(--muted)">รายการประตู</span></div>
+        <div style="padding:8px 12px;background:#F8FAFC;border-radius:8px;font-size:11px;font-weight:700;color:var(--fg);display:flex;justify-content:space-between"><span>door_checklists</span><span style="color:var(--muted)">รายการตรวจสอบ</span></div>
+        <div style="padding:8px 12px;background:#F8FAFC;border-radius:8px;font-size:11px;font-weight:700;color:var(--fg);display:flex;justify-content:space-between"><span>door_submissions</span><span style="color:var(--muted)">ผลการตรวจ</span></div>
+        <div style="padding:8px 12px;background:rgba(124,58,237,.05);border-radius:8px;font-size:11px;font-weight:700;color:var(--purple);display:flex;justify-content:space-between;border:1px solid rgba(124,58,237,.12)"><span>door_settings/admins</span><span style="color:var(--muted)">Admin accounts</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Seed & จัดการข้อมูล</div>
+    <div class="seed-prog-bar" id="seedBar"><div style="font-size:12px;font-weight:800;color:var(--fg)" id="seedTitle">กำลัง Seed...</div><div class="seed-prog-track"><div class="seed-prog-fill" id="seedFill"></div></div><div style="font-size:11px;color:var(--muted)" id="seedText">0 / 0</div></div>
+    <div style="display:flex;gap:9px;flex-wrap:wrap">
+      <button class="btn btn-primary" id="btnSeedAll" onclick="seedAllData()">Seed ข้อมูลทั้งหมด (ลบเก่า + Seed ใหม่)</button>
+      <button class="btn btn-secondary" onclick="seedChecklists()">Seed Checklists</button>
+      <button class="btn btn-secondary" onclick="seedShifts()">Seed Shifts</button>
+      <button class="btn btn-warn btn-sm" onclick="confirmCleanReseed()">ล้างประตูซ้ำ + Seed ใหม่</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmDeleteAllDoors()">ลบประตูทั้งหมด</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- end main -->
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-delete">
+  <div class="modal-box">
+    <div class="modal-title" id="modalDeleteTitle">ยืนยันการลบ</div>
+    <div class="modal-sub" id="modalDeleteMsg">คุณต้องการลบรายการนี้?</div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-delete')">ยกเลิก</button><button class="btn btn-danger" id="modalDeleteConfirm">ลบ</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-logout">
+  <div class="modal-box">
+    <div class="modal-title">ออกจากระบบ</div>
+    <div class="modal-sub">ยืนยันการออกจาก Admin Portal?</div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-logout')">ยกเลิก</button><button class="btn btn-danger" onclick="doLogout()">ออกจากระบบ</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-section">
+  <div class="modal-box">
+    <div class="modal-title">เพิ่มหมวดหมู่ Checklist</div>
+    <div class="modal-sub">กรอกชื่อหมวดหมู่ใหม่</div>
+    <div class="fg"><label>ชื่อหมวดหมู่</label><input class="fi" id="newSectionName" placeholder="เช่น ระบบไฟฟ้า"></div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-section')">ยกเลิก</button><button class="btn btn-primary" onclick="addSection()">เพิ่ม</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal-box">
+    <div class="modal-title" id="confirmTitle">ยืนยัน</div>
+    <div class="modal-sub" id="confirmMsg">—</div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-confirm')">ยกเลิก</button><button class="btn btn-danger" id="confirmBtn">ยืนยัน</button></div>
+  </div>
+</div>
+<!-- Change Password Modal -->
+<div class="modal-overlay" id="modal-change-pass">
+  <div class="modal-box">
+    <div class="modal-title">เปลี่ยนรหัสผ่าน</div>
+    <div class="modal-sub" id="changePassFor">—</div>
+    <div class="fg" style="margin-bottom:12px"><label>รหัสผ่านใหม่ *</label><input class="fi" id="new-pass-1" type="password" placeholder="รหัสผ่านใหม่"></div>
+    <div class="fg"><label>ยืนยันรหัสผ่าน *</label><input class="fi" id="new-pass-2" type="password" placeholder="ยืนยันรหัสผ่าน"></div>
+    <div class="login-err" id="changePassErr"></div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('modal-change-pass')">ยกเลิก</button><button class="btn btn-primary" onclick="doChangePassword()">เปลี่ยนรหัสผ่าน</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, writeBatch } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAoOTx0rrzqZ-V2t9QE6FhQQl5dcL81GZc",
+  authDomain: "smart-logistics-system-v1.firebaseapp.com",
+  databaseURL: "https://smart-logistics-system-v1-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "smart-logistics-system-v1",
+  storageBucket: "smart-logistics-system-v1.firebasestorage.app",
+  messagingSenderId: "255204464932",
+  appId: "1:255204464932:web:c0e032f51866ae4e017bb1"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ── STATE ──
+let allDoors=[], allUsers=[], allChecklists=[], allShifts=[], allSubmissions=[], allAdminAccounts=[];
+let editingDoorId=null, editingUserId=null, editingAdminAccId=null;
+let qrSelected=new Set(), actFilter='all';
+let unsubDoors, unsubUsers, unsubSubs;
+let currentAdminUser = null; // { id, username, displayName, role: 'superadmin'|'admin', ... }
+let changingPasswordForId = null;
+
+const EXPECTED_DOORS = 167;
+const DOOR_ZONES = [
+  {prefix:'A00',name:'Admin Door',zone:'admin',count:6},
+  {prefix:'P1',name:'Fire Exit Door Phase1',zone:'Phase#1',count:23},
+  {prefix:'P2',name:'Fire Exit Door Phase2',zone:'Phase#2',count:19},
+  {prefix:'P3',name:'Fire Exit Door Phase3',zone:'Phase#3',count:17},
+  {prefix:'P4',name:'Fire Exit Door Phase4',zone:'Phase#4',count:15},
+  {prefix:'P51',name:'Fire Exit Door Phase5-1F',zone:'Phase#5_1st FL.',count:22},
+  {prefix:'P52',name:'Fire Exit Door Phase5-2F',zone:'Phase#5_2nd FL.',count:14},
+  {prefix:'P53',name:'Fire Exit Door Phase5-3F',zone:'Phase#5_3rd FL.',count:17},
+  {prefix:'P5R',name:'Roof Exit Door',zone:'Phase#5_Roof',count:2},
+  {prefix:'UT3',name:'UT3 Fire Exit',zone:'UT3',count:9},
+  {prefix:'UT4',name:'UT4 Fire Exit',zone:'UT4',count:18},
+  {prefix:'CNP',name:'Support Building Exit',zone:'Support Building',count:5},
+];
+
+// ── HELPERS ──
+let toastTimer;
+window.toast = function(msg, type) {
+  if(!type) type='info';
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast show '+type;
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),3500);
+};
+window.openModal = id => document.getElementById(id).classList.add('open');
+window.closeModal = id => document.getElementById(id).classList.remove('open');
+
+function setLoading(text) { document.getElementById('loadingText').textContent=text; }
+function showLoading() { document.getElementById('loadingScreen').classList.remove('hide'); }
+function hideLoading() { document.getElementById('loadingScreen').classList.add('hide'); }
+
+function setSeed(title, pct, text) {
+  const bar=document.getElementById('seedBar');
+  bar.classList.add('show');
+  document.getElementById('seedTitle').textContent=title;
+  document.getElementById('seedFill').style.width=pct+'%';
+  document.getElementById('seedText').textContent=text;
+}
+function hideSeed() { setTimeout(()=>document.getElementById('seedBar').classList.remove('show'),1500); }
+
+// ── INIT ──
+async function init() {
+  setLoading('กำลังเชื่อมต่อ Firebase...');
+  try {
+    await loadSettings();
+    hideLoading();
+  } catch(e) {
+    document.getElementById('loadingText').textContent='เชื่อมต่อไม่สำเร็จ: '+e.message;
+  }
+}
+
+async function loadSettings() {
+  try {
+    const snap = await getDoc(doc(db,'door_settings','config'));
+    if(snap.exists()) {
+      const d=snap.data();
+      allShifts=d.shifts||getDefaultShifts();
+      if(d.adminContact) {
+        document.getElementById('admin-name').value=d.adminContact.name||'';
+        document.getElementById('admin-role-field').value=d.adminContact.role||'';
+        document.getElementById('admin-contact').value=d.adminContact.contact||'';
+      }
+    } else { allShifts=getDefaultShifts(); }
+  } catch(e) { allShifts=getDefaultShifts(); }
+}
+
+// ── LOGIN with Role ──
+window.doAdminLogin = async function() {
+  const u=document.getElementById('adminUser').value.trim();
+  const p=document.getElementById('adminPass').value;
+  const err=document.getElementById('loginErr');
+  if(!u||!p){err.textContent='กรุณากรอก Username และ Password';return;}
+  const btn=document.getElementById('loginBtn');
+  btn.disabled=true; btn.textContent='กำลังตรวจสอบ...';
+  showLoading(); setLoading('กำลังตรวจสอบสิทธิ์...');
+  try {
+    // 1. Try Firestore door_settings/admins first
+    const adminsDoc = await getDoc(doc(db,'door_settings','admins'));
+    let foundAdmin = null;
+    if(adminsDoc.exists()) {
+      const accounts = adminsDoc.data().accounts || [];
+      foundAdmin = accounts.find(a => a.username===u && a.password===p && a.active!==false);
+    }
+   
+    if(foundAdmin) {
+      currentAdminUser = foundAdmin;
+      applyRoleUI(foundAdmin.role);
+      document.getElementById('loginPage').classList.add('hide');
+      document.getElementById('mainTopbar').style.display='';
+      document.getElementById('mainSidebar').style.display='';
+      document.getElementById('mainContent').style.display='';
+      hideLoading();
+      startRealtimeListeners();
+      loadAdminAccounts();
+      toast('ยินดีต้อนรับ '+foundAdmin.displayName+' ('+foundAdmin.role+')','ok');
+    } else {
+      err.textContent='Username หรือ Password ไม่ถูกต้อง';
+      hideLoading();
+    }
+  } catch(e) {
+    err.textContent='เข้าสู่ระบบไม่สำเร็จ: '+e.message;
+    hideLoading();
+  }
+  btn.disabled=false; btn.textContent='เข้าสู่ระบบ Admin';
+};
+
+document.getElementById('adminUser').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('adminPass').focus();});
+document.getElementById('adminPass').addEventListener('keydown',e=>{if(e.key==='Enter')window.doAdminLogin();});
+
+// ── APPLY ROLE UI ──
+function applyRoleUI(role) {
+  const isSA = role === 'superadmin';
+  const displayName = currentAdminUser?.displayName || 'Admin';
+  const initials = displayName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+
+  document.getElementById('tbAvatar').textContent = initials;
+  document.getElementById('topbarRoleSub').textContent = isSA ? 'SUPERADMIN DASHBOARD' : 'ADMIN DASHBOARD';
+
+  const chip = document.getElementById('currentRoleChip');
+  if(isSA) { chip.textContent='Superadmin'; chip.className='role-chip role-superadmin'; }
+  else { chip.textContent='Admin'; chip.className='role-chip role-admin'; }
+
+  // Show/hide superadmin-only nav items
+  document.querySelectorAll('.nav-superadmin-only').forEach(el => {
+    if(isSA) el.classList.remove('hidden');
+    else el.classList.add('hidden');
+  });
+}
+
+window.confirmLogout = () => openModal('modal-logout');
+window.doLogout = () => {
+  if(unsubDoors) unsubDoors(); if(unsubUsers) unsubUsers(); if(unsubSubs) unsubSubs();
+  currentAdminUser=null;
+  document.getElementById('loginPage').classList.remove('hide');
+  document.getElementById('mainTopbar').style.display='none';
+  document.getElementById('mainSidebar').style.display='none';
+  document.getElementById('mainContent').style.display='none';
+  document.getElementById('adminUser').value='';
+  document.getElementById('adminPass').value='';
+  closeModal('modal-logout');
+  allDoors=[]; allUsers=[]; allSubmissions=[];
+};
+
+// ── PERMISSION GUARD ──
+function isSuperAdmin() { return currentAdminUser?.role==='superadmin'; }
+function requireSuperAdmin(action) {
+  if(!isSuperAdmin()) { toast('เฉพาะ Superadmin เท่านั้น','err'); return false; }
+  return true;
+}
+
+// ── REALTIME LISTENERS ──
+function startRealtimeListeners() {
+  unsubDoors=onSnapshot(collection(db,'door_doors'),snap=>{
+    allDoors=[];
+    snap.forEach(d=>allDoors.push({id:d.id,...d.data()}));
+    allDoors.sort((a,b)=>(a.code||'').localeCompare(b.code||''));
+    updateDoorUI();
+  });
+  unsubUsers=onSnapshot(collection(db,'door_users'),snap=>{
+    allUsers=[];
+    snap.forEach(d=>allUsers.push({id:d.id,...d.data()}));
+    updateUserUI();
+  });
+  unsubSubs=onSnapshot(collection(db,'door_submissions'),snap=>{
+    allSubmissions=[];
+    snap.forEach(d=>allSubmissions.push({id:d.id,...d.data()}));
+    allSubmissions.sort((a,b)=>{
+      const ta=a.timestamp?(a.timestamp.toDate?a.timestamp.toDate():new Date(a.timestamp)):new Date(0);
+      const tb=b.timestamp?(b.timestamp.toDate?b.timestamp.toDate():new Date(b.timestamp)):new Date(0);
+      return tb-ta;
+    });
+    updateSubsUI(); updateDashboard();
+  });
+  loadChecklists(); renderShiftList(); renderQRGrid();
+}
+
+// ── ADMIN ACCOUNTS ──
+async function loadAdminAccounts() {
+  const snap = await getDoc(doc(db,'door_settings','admins'));
+  if(snap.exists()) {
+    allAdminAccounts = snap.data().accounts || [];
+  } else { allAdminAccounts = []; }
+  renderAdminAccList();
+  document.getElementById('badge-admins').textContent = allAdminAccounts.length;
+}
+
+function renderAdminAccList() {
+  document.getElementById('adminAccCount').textContent = allAdminAccounts.length;
+  const container = document.getElementById('adminAccList');
+  if(!allAdminAccounts.length) {
+    container.innerHTML='<div style="text-align:center;padding:32px;color:var(--dim);font-size:13px">ยังไม่มี Admin Account — กดเพิ่มเพื่อสร้าง</div>';
+    return;
+  }
+  container.innerHTML = allAdminAccounts.map((acc,i) => {
+    const isSA = acc.role==='superadmin';
+    const av = (acc.displayName||acc.username||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const isMe = currentAdminUser && acc.username===currentAdminUser.username;
+    const isDefault = acc.id==='default';
+    return '<div class="admin-acc-card '+(isSA?'superadmin':'admin-role')+'">'
+      +'<div class="admin-avatar '+(isSA?'sa':'ad')+'">'+av+'</div>'
+      +'<div class="admin-info">'
+        +'<div class="admin-name">'+acc.displayName+' '+(isMe?'<span class="you-badge">คุณ</span>':'')+'</div>'
+        +'<div class="admin-meta">'
+          +'<span style="font-family:monospace;font-size:11px;color:var(--dim)">@'+acc.username+'</span>'
+          +'<span class="role-chip '+(isSA?'role-superadmin':'role-admin')+'">'+acc.role+'</span>'
+          +(acc.jobTitle?'<span style="font-size:11px;color:var(--dim)">· '+acc.jobTitle+'</span>':'')
+        +'</div>'
+      +'</div>'
+      +'<div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">'
+        +'<button class="btn btn-secondary btn-sm" onclick="openChangePassword(\''+i+'\')">เปลี่ยนรหัส</button>'
+        +(isSuperAdmin()&&!isDefault?'<button class="btn btn-secondary btn-sm" onclick="editAdminAcc('+i+')">แก้ไข</button>':'')
+        +(isSuperAdmin()&&!isMe&&!isDefault?'<button class="btn btn-danger btn-sm" onclick="confirmDeleteAdmin('+i+')">ลบ</button>':'')
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+
+window.openAdminAccForm = function() {
+  if(!requireSuperAdmin()) return;
+  editingAdminAccId = null;
+  ['aa-username','aa-password','aa-name','aa-jobtitle','aa-email'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('aa-role').value='admin';
+  document.getElementById('adminAccFormTitle').textContent='เพิ่ม Admin Account ใหม่';
+  document.getElementById('adminAccFormCard').style.display='';
+  document.getElementById('adminAccFormCard').scrollIntoView({behavior:'smooth'});
+};
+
+window.editAdminAcc = function(idx) {
+  if(!requireSuperAdmin()) return;
+  const acc = allAdminAccounts[idx];
+  editingAdminAccId = idx;
+  document.getElementById('aa-username').value=acc.username||'';
+  document.getElementById('aa-password').value=acc.password||'';
+  document.getElementById('aa-name').value=acc.displayName||'';
+  document.getElementById('aa-role').value=acc.role||'admin';
+  document.getElementById('aa-jobtitle').value=acc.jobTitle||'';
+  document.getElementById('aa-email').value=acc.email||'';
+  document.getElementById('adminAccFormTitle').textContent='แก้ไข: '+acc.displayName;
+  document.getElementById('adminAccFormCard').style.display='';
+  document.getElementById('adminAccFormCard').scrollIntoView({behavior:'smooth'});
+};
+
+window.cancelAdminAccForm = function() {
+  document.getElementById('adminAccFormCard').style.display='none';
+  editingAdminAccId=null;
+};
+
+window.saveAdminAccount = async function() {
+  if(!requireSuperAdmin()) return;
+  const username=document.getElementById('aa-username').value.trim();
+  const password=document.getElementById('aa-password').value.trim();
+  const displayName=document.getElementById('aa-name').value.trim();
+  const role=document.getElementById('aa-role').value;
+  const jobTitle=document.getElementById('aa-jobtitle').value.trim();
+  const email=document.getElementById('aa-email').value.trim();
+  if(!username||!password||!displayName){toast('กรุณากรอก Username, Password และชื่อ','err');return;}
+  if(password.length<6){toast('Password ต้องมีอย่างน้อย 6 ตัวอักษร','err');return;}
+  // Check duplicate username
+  if(editingAdminAccId===null && allAdminAccounts.find(a=>a.username===username)) {
+    toast('Username นี้มีอยู่แล้ว','err'); return;
+  }
+  const newAcc = { id:'acc_'+Date.now(), username, password, displayName, role, jobTitle, email, active:true, createdAt:new Date().toISOString() };
+  if(editingAdminAccId!==null) {
+    allAdminAccounts[editingAdminAccId] = {...allAdminAccounts[editingAdminAccId], ...newAcc, id:allAdminAccounts[editingAdminAccId].id};
+  } else {
+    allAdminAccounts.push(newAcc);
+  }
+  try {
+    await setDoc(doc(db,'door_settings','admins'), { accounts: allAdminAccounts }, { merge: false });
+    renderAdminAccList();
+    document.getElementById('badge-admins').textContent=allAdminAccounts.length;
+    cancelAdminAccForm();
+    toast((editingAdminAccId!==null?'แก้ไข':'เพิ่ม')+' Admin Account เรียบร้อย — '+role,'ok');
+    editingAdminAccId=null;
+  } catch(e) { toast('บันทึกไม่สำเร็จ: '+e.message,'err'); }
+};
+
+window.confirmDeleteAdmin = function(idx) {
+  if(!requireSuperAdmin()) return;
+  const acc = allAdminAccounts[idx];
+  document.getElementById('modalDeleteTitle').textContent='ยืนยันการลบ Admin';
+  document.getElementById('modalDeleteMsg').textContent='ต้องการลบ Admin Account "'+acc.displayName+' (@'+acc.username+')" ?';
+  document.getElementById('modalDeleteConfirm').onclick = async () => {
+    allAdminAccounts.splice(idx,1);
+    await setDoc(doc(db,'door_settings','admins'),{accounts:allAdminAccounts},{merge:false});
+    renderAdminAccList();
+    closeModal('modal-delete');
+    toast('ลบ Admin Account เรียบร้อย','info');
+  };
+  openModal('modal-delete');
+};
+
+// ── CHANGE PASSWORD (available to all admins for own account, or superadmin for any) ──
+window.openChangePassword = function(idx) {
+  const acc = allAdminAccounts[idx];
+  const isMe = currentAdminUser && acc.username===currentAdminUser.username;
+  if(!isMe && !isSuperAdmin()) { toast('สามารถเปลี่ยนได้เฉพาะรหัสของตัวเองเท่านั้น','err'); return; }
+  changingPasswordForId = idx;
+  document.getElementById('changePassFor').textContent='เปลี่ยนรหัสผ่านสำหรับ: '+acc.displayName+' (@'+acc.username+')';
+  document.getElementById('new-pass-1').value='';
+  document.getElementById('new-pass-2').value='';
+  document.getElementById('changePassErr').textContent='';
+  openModal('modal-change-pass');
+};
+
+window.doChangePassword = async function() {
+  const p1=document.getElementById('new-pass-1').value.trim();
+  const p2=document.getElementById('new-pass-2').value.trim();
+  const errEl=document.getElementById('changePassErr');
+  if(!p1||!p2){errEl.textContent='กรุณากรอกรหัสผ่านทั้งสองช่อง';return;}
+  if(p1.length<6){errEl.textContent='Password ต้องมีอย่างน้อย 6 ตัว';return;}
+  if(p1!==p2){errEl.textContent='รหัสผ่านไม่ตรงกัน';return;}
+  allAdminAccounts[changingPasswordForId].password = p1;
+  try {
+    await setDoc(doc(db,'door_settings','admins'),{accounts:allAdminAccounts},{merge:false});
+    closeModal('modal-change-pass');
+    toast('เปลี่ยนรหัสผ่านเรียบร้อย','ok');
+  } catch(e) { errEl.textContent='บันทึกไม่สำเร็จ: '+e.message; }
+};
+
+// ── DASHBOARD ──
+function updateDashboard() {
+  const today=new Date(); today.setHours(0,0,0,0);
+  const todaySubs=allSubmissions.filter(s=>{const t=s.timestamp?(s.timestamp.toDate?s.timestamp.toDate():new Date(s.timestamp)):null;return t&&t>=today;});
+  const todayFail=todaySubs.filter(s=>s.overall==='fail'||s.overall==='cond').length;
+  document.getElementById('kpi-doors').textContent=allDoors.length;
+  document.getElementById('kpi-doors-sub').textContent=[...new Set(allDoors.map(d=>d.zone))].length+' โซน';
+  document.getElementById('kpi-today').textContent=todaySubs.length;
+  document.getElementById('kpi-today-sub').textContent='ผ่าน '+todaySubs.filter(s=>s.overall==='ok').length;
+  document.getElementById('kpi-fail').textContent=todayFail;
+  document.getElementById('kpi-users').textContent=allUsers.filter(u=>u.active).length;
+  document.getElementById('badge-pending').textContent=Math.max(0,allDoors.length-todaySubs.length);
+  document.getElementById('badge-subs').textContent=todaySubs.length;
+  document.getElementById('badge-alert').textContent=todayFail;
+  document.getElementById('notifDot').style.display=todayFail>0?'':'none';
+  document.getElementById('lastUpdate').textContent=new Date().toLocaleString('th-TH');
+  drawDonut(todaySubs); drawBarChart(); renderRecentFeed();
+}
+
+function drawDonut(subs) {
+  const pass=subs.filter(s=>s.overall==='ok').length,cond=subs.filter(s=>s.overall==='cond').length,fail=subs.filter(s=>s.overall==='fail').length;
+  const total=allDoors.length||1,circ=2*Math.PI*38,cx=55,cy=55,r=38,sw=15;
+  const pP=pass/total,pC=cond/total,pF=fail/total;
+  const aP=Math.max(0,(pP-.02))*circ,aC=Math.max(0,(pC-.02))*circ,aF=Math.max(0,(pF-.02))*circ;
+  document.getElementById('donutSvg').innerHTML=
+    '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#E2E8F0" stroke-width="'+sw+'"/>'+
+    '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#22C55E" stroke-width="'+sw+'" stroke-dasharray="'+aP+' '+circ+'" stroke-linecap="round" transform="rotate(-90 '+cx+' '+cy+')"/>'+
+    '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#F59E0B" stroke-width="'+sw+'" stroke-dasharray="'+aC+' '+circ+'" stroke-dashoffset="'+(-(pP*circ))+'" stroke-linecap="round" transform="rotate(-90 '+cx+' '+cy+')"/>'+
+    '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#EF4444" stroke-width="'+sw+'" stroke-dasharray="'+aF+' '+circ+'" stroke-dashoffset="'+(-((pP+pC)*circ))+'" stroke-linecap="round" transform="rotate(-90 '+cx+' '+cy+')"/>'+
+    '<text x="'+cx+'" y="'+(cy-2)+'" text-anchor="middle" fill="#1A2332" font-size="18" font-weight="900" font-family="Manrope,Arial">'+subs.length+'</text>'+
+    '<text x="'+cx+'" y="'+(cy+14)+'" text-anchor="middle" fill="#8A9AB0" font-size="9" font-weight="700" font-family="Manrope,Arial">/'+total+'</text>';
+  document.getElementById('donutLegend').innerHTML=
+    '<div class="leg-item"><div class="leg-dot" style="background:#22C55E"></div><span class="leg-name">ผ่าน</span><span class="leg-val">'+pass+'</span></div>'+
+    '<div class="leg-item"><div class="leg-dot" style="background:#F59E0B"></div><span class="leg-name">เงื่อนไข</span><span class="leg-val">'+cond+'</span></div>'+
+    '<div class="leg-item"><div class="leg-dot" style="background:#EF4444"></div><span class="leg-name">ไม่ผ่าน</span><span class="leg-val">'+fail+'</span></div>'+
+    '<div class="leg-item"><div class="leg-dot" style="background:#E2E8F0"></div><span class="leg-name">ยังไม่ตรวจ</span><span class="leg-val">'+(allDoors.length-subs.length)+'</span></div>';
+}
+
+function drawBarChart() {
+  const zones=[...new Set(allDoors.map(d=>d.zone))].sort();
+  const today=new Date(); today.setHours(0,0,0,0);
+  const ts=allSubmissions.filter(s=>{const t=s.timestamp?(s.timestamp.toDate?s.timestamp.toDate():new Date(s.timestamp)):null;return t&&t>=today;});
+  const maxT=Math.max(...zones.map(z=>allDoors.filter(d=>d.zone===z).length),1);
+  document.getElementById('barChart').innerHTML=zones.map(z=>{
+    const total=allDoors.filter(d=>d.zone===z).length;
+    const done=ts.filter(s=>s.zone===z).length;
+    const pct=total>0?Math.round(done/total*100):0;
+    return '<div class="bar-row"><div class="bar-lbl">'+z+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(total/maxT*100)+'%"></div></div><div class="bar-val">'+pct+'%</div></div>';
+  }).join('');
+}
+
+function renderRecentFeed() {
+  const rm={ok:{label:'ผ่าน',color:'#22C55E'},cond:{label:'เงื่อนไข',color:'#F59E0B'},fail:{label:'ไม่ผ่าน',color:'#EF4444'}};
+  document.getElementById('recentFeed').innerHTML=allSubmissions.slice(0,12).map((s,i,arr)=>{
+    const r=rm[s.overall]||{label:s.overall,color:'#8A9AB0'};
+    const ts=s.timestamp?(s.timestamp.toDate?s.timestamp.toDate():new Date(s.timestamp)):null;
+    return '<div class="feed-item"><div class="feed-dot-wrap"><div class="feed-dot" style="background:'+r.color+'"></div>'+(i<arr.length-1?'<div class="feed-line"></div>':'')+'</div><div class="feed-content"><div class="feed-title">'+s.doorCode+' — '+s.doorName+'</div><div class="feed-sub">'+s.inspectorName+' · '+s.zone+' · <span style="color:'+r.color+';font-weight:700">'+r.label+'</span></div>'+(ts?'<div class="feed-time">'+ts.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})+'</div>':'')+'</div></div>';
+  }).join('')||'<div style="text-align:center;padding:24px;color:var(--dim);font-size:13px">ยังไม่มีผลการตรวจ</div>';
+}
+
+// ── DOORS ──
+function updateDoorUI() {
+  renderDoorTable(); updateZoneFilters();
+  document.getElementById('badge-doors').textContent=allDoors.length;
+  document.getElementById('settingDoorCount').textContent=allDoors.length+' รายการ';
+}
+
+window.renderDoorTable=function(){
+  const q=(document.getElementById('doorSearch').value||'').toLowerCase();
+  const zf=document.getElementById('doorZoneFilter').value;
+  const filtered=allDoors.filter(d=>(!q||d.code?.toLowerCase().includes(q)||d.name?.toLowerCase().includes(q))&&(!zf||d.zone===zf));
+  const bc={ปกติ:'bg',แจ้งซ่อม:'bo',ตรวจแล้ว:'bb',ไม่ผ่าน:'br'};
+  document.getElementById('doorTableBody').innerHTML=filtered.map(d=>
+    '<tr><td><code style="font-size:11px;background:#F1F5F9;padding:2px 7px;border-radius:4px;font-weight:700">'+d.code+'</code></td><td style="font-weight:600">'+d.name+'</td><td>'+d.zone+'</td><td>'+(d.type||'Fire Exit Door')+'</td><td><span class="badge '+(bc[d.status]||'bd')+'">'+d.status+'</span></td><td><div style="display:flex;gap:6px"><button class="btn btn-secondary btn-sm" onclick="editDoor(\''+d.id+'\')">แก้ไข</button><button class="btn btn-danger btn-sm" onclick="confirmDelete(\'door\',\''+d.id+'\',\''+d.code+'\')">ลบ</button></div></td></tr>'
+  ).join('');
+  document.getElementById('doorCount').textContent=allDoors.length;
+};
+
+function updateZoneFilters(){
+  const zones=[...new Set(allDoors.map(d=>d.zone))].sort();
+  const opts='<option value="">ทุกโซน</option>'+zones.map(z=>'<option>'+z+'</option>').join('');
+  ['doorZoneFilter','qrZoneFilter','subZoneFilter'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
+  const dl=document.getElementById('zone-list');
+  if(dl)dl.innerHTML=zones.map(z=>'<option value="'+z+'">').join('');
+}
+
+window.saveDoor=async function(){
+  const code=document.getElementById('f-code').value.trim(),name=document.getElementById('f-name').value.trim(),zone=document.getElementById('f-zone').value.trim();
+  if(!code||!name||!zone){toast('กรุณากรอกรหัส ชื่อ และโซน','err');return;}
+  const data={code,name,zone,type:document.getElementById('f-type').value,location:document.getElementById('f-location').value.trim(),status:'ปกติ'};
+  try{if(editingDoorId){await updateDoc(doc(db,'door_doors',editingDoorId),data);toast('แก้ไขประตู '+code,'ok');}else{await addDoc(collection(db,'door_doors'),data);toast('เพิ่มประตู '+code,'ok');}clearDoorForm();}catch(e){toast('บันทึกไม่สำเร็จ','err');}
+};
+
+window.editDoor=function(id){const d=allDoors.find(x=>x.id===id);if(!d)return;document.getElementById('f-code').value=d.code||'';document.getElementById('f-name').value=d.name||'';document.getElementById('f-zone').value=d.zone||'';document.getElementById('f-type').value=d.type||'Fire Exit Door';document.getElementById('f-location').value=d.location||'';editingDoorId=id;document.getElementById('doorFormTitle').textContent='แก้ไขประตู: '+d.code;document.getElementById('doorFormCard').scrollIntoView({behavior:'smooth'});};
+
+window.clearDoorForm=function(){['f-code','f-name','f-zone','f-location'].forEach(id=>document.getElementById(id).value='');document.getElementById('f-type').value='Fire Exit Door';editingDoorId=null;document.getElementById('doorFormTitle').textContent='เพิ่มประตูใหม่';};
+
+// ── USERS ──
+function updateUserUI(){renderUserList();document.getElementById('badge-users').textContent=allUsers.filter(u=>u.active).length;document.getElementById('settingUserCount').textContent=allUsers.length+' คน';document.getElementById('userCount').textContent=allUsers.length;}
+
+function renderUserList(){
+  const container=document.getElementById('userList');
+  if(!allUsers.length){container.innerHTML='<div style="text-align:center;padding:24px;color:var(--dim)">ยังไม่มี Inspector</div>';return;}
+  container.innerHTML=allUsers.map(u=>{const av=(u.displayName||u.username||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();return '<div class="user-card"><div class="user-avatar">'+av+'</div><div style="flex:1"><div style="font-size:14px;font-weight:800">'+u.displayName+'</div><div style="font-size:11px;color:var(--muted)">@'+u.username+' · '+(u.zones&&u.zones.length?u.zones.join(', '):'ทุกโซน')+'</div></div><div style="display:flex;gap:8px;align-items:center"><span class="badge '+(u.active?'bg':'bd')+'">'+(u.active?'Active':'Inactive')+'</span><button class="btn btn-secondary btn-sm" onclick="editUser(\''+u.id+'\')">แก้ไข</button><button class="btn btn-danger btn-sm" onclick="confirmDelete(\'user\',\''+u.id+'\',\''+u.username+'\')">ลบ</button></div></div>';}).join('');
+}
+
+window.openUserForm=function(){editingUserId=null;['u-username','u-password','u-name','u-empid','u-zones'].forEach(id=>document.getElementById(id).value='');document.getElementById('userFormTitle').textContent='เพิ่ม Inspector ใหม่';document.getElementById('userFormCard').style.display='';document.getElementById('userFormCard').scrollIntoView({behavior:'smooth'});};
+window.editUser=function(id){const u=allUsers.find(x=>x.id===id);if(!u)return;editingUserId=id;document.getElementById('u-username').value=u.username||'';document.getElementById('u-password').value=u.password||'';document.getElementById('u-name').value=u.displayName||'';document.getElementById('u-empid').value=u.empId||'';document.getElementById('u-zones').value=u.zones?(u.zones.join(',')):'';document.getElementById('userFormTitle').textContent='แก้ไข: '+u.displayName;document.getElementById('userFormCard').style.display='';document.getElementById('userFormCard').scrollIntoView({behavior:'smooth'});};
+window.saveUser=async function(){const username=document.getElementById('u-username').value.trim(),password=document.getElementById('u-password').value.trim(),displayName=document.getElementById('u-name').value.trim(),empId=document.getElementById('u-empid').value.trim(),zonesRaw=document.getElementById('u-zones').value.trim();const zones=zonesRaw?zonesRaw.split(',').map(z=>z.trim()).filter(z=>z):[];if(!username||!password||!displayName){toast('กรุณากรอก Username, Password และชื่อ','err');return;}const data={username,password,displayName,empId,zones,role:'inspector',active:true};try{if(editingUserId){await updateDoc(doc(db,'door_users',editingUserId),data);toast('แก้ไขเรียบร้อย','ok');}else{await addDoc(collection(db,'door_users'),data);toast('เพิ่ม Inspector เรียบร้อย','ok');}cancelUserForm();}catch(e){toast('บันทึกไม่สำเร็จ','err');}};
+window.cancelUserForm=function(){document.getElementById('userFormCard').style.display='none';editingUserId=null;};
+
+// ── CHECKLISTS ──
+async function loadChecklists(){const snap=await getDocs(collection(db,'door_checklists'));allChecklists=[];snap.forEach(d=>allChecklists.push({id:d.id,...d.data()}));allChecklists.sort((a,b)=>(a.order||0)-(b.order||0));if(!allChecklists.length)allChecklists=getDefaultChecklists();renderChecklistBuilder();}
+
+function renderChecklistBuilder(){document.getElementById('checklistBuilder').innerHTML=allChecklists.map((sec,si)=>{const itemsHtml=(sec.items||[]).map((item,ii)=>'<div class="cl-item-row"><div class="cl-item-text">'+item+'</div><button class="btn btn-danger btn-sm" onclick="removeCheckItem('+si+','+ii+')">ลบ</button></div>').join('');return '<div class="cl-section-card"><div class="cl-sec-hdr"><div class="cl-sec-title">'+sec.name+'</div><span style="font-size:10px;color:var(--dim)">'+(sec.items||[]).length+' ข้อ</span><button class="btn btn-danger btn-sm" style="margin-left:auto" onclick="removeSection('+si+')">ลบหมวด</button></div>'+itemsHtml+'<div class="cl-add-row"><input class="cl-add-input" id="cl-add-'+si+'" placeholder="พิมพ์รายการตรวจสอบ..."><button class="btn btn-success btn-sm" onclick="addCheckItem('+si+')">+ เพิ่ม</button></div></div>';}).join('');}
+
+window.addCheckItem=function(si){const inp=document.getElementById('cl-add-'+si);const text=inp.value.trim();if(!text)return;if(!allChecklists[si].items)allChecklists[si].items=[];allChecklists[si].items.push(text);inp.value='';renderChecklistBuilder();};
+window.removeCheckItem=function(si,ii){allChecklists[si].items.splice(ii,1);renderChecklistBuilder();};
+window.removeSection=function(si){allChecklists.splice(si,1);renderChecklistBuilder();};
+window.openAddSection=function(){openModal('modal-section');};
+window.addSection=function(){const name=document.getElementById('newSectionName').value.trim();if(!name)return;allChecklists.push({id:'sec'+Date.now(),name,icon:'shield',order:allChecklists.length,items:[]});renderChecklistBuilder();closeModal('modal-section');document.getElementById('newSectionName').value='';};
+window.saveAllChecklists=async function(){try{const batch=writeBatch(db);const existSnap=await getDocs(collection(db,'door_checklists'));existSnap.forEach(d=>batch.delete(d.ref));allChecklists.forEach((sec,i)=>{const ref=doc(collection(db,'door_checklists'));batch.set(ref,{...sec,order:i});});await batch.commit();toast('บันทึก Checklist เรียบร้อย','ok');}catch(e){toast('บันทึกไม่สำเร็จ','err');}};
+
+// ── SHIFTS ──
+function getDefaultShifts(){return[{id:'A',name:'กะ A (เช้า)',startH:6,endH:14},{id:'B',name:'กะ B (บ่าย)',startH:14,endH:22},{id:'C',name:'กะ C (ดึก)',startH:22,endH:6}];}
+function renderShiftList(){document.getElementById('shiftList').innerHTML=allShifts.map((sh,i)=>'<div class="shift-card"><div class="shift-time-badge">'+String(sh.startH).padStart(2,'0')+':00 – '+String(sh.endH).padStart(2,'0')+':00</div><div style="flex:1"><input class="fi" value="'+sh.name+'" onchange="allShifts['+i+'].name=this.value" style="border:none;padding:0;font-size:14px;font-weight:800;background:transparent"><div style="font-size:12px;color:var(--muted);margin-top:4px">เริ่ม <input type="number" min="0" max="23" value="'+sh.startH+'" onchange="allShifts['+i+'].startH=parseInt(this.value)" style="width:40px;border:1px solid var(--border);border-radius:4px;padding:2px 6px;font-family:Manrope;font-size:12px"> น. ถึง <input type="number" min="0" max="23" value="'+sh.endH+'" onchange="allShifts['+i+'].endH=parseInt(this.value)" style="width:40px;border:1px solid var(--border);border-radius:4px;padding:2px 6px;font-family:Manrope;font-size:12px"> น.</div></div><button class="btn btn-danger btn-sm" onclick="removeShift('+i+')">ลบ</button></div>').join('');}
+window.addShift=function(){allShifts.push({id:'sh'+Date.now(),name:'กะใหม่',startH:0,endH:8});renderShiftList();};
+window.removeShift=function(i){allShifts.splice(i,1);renderShiftList();};
+window.saveShifts=async function(){try{await setDoc(doc(db,'door_settings','config'),{shifts:allShifts},{merge:true});toast('บันทึก Shift Time เรียบร้อย','ok');}catch(e){toast('บันทึกไม่สำเร็จ','err');}};
+window.saveAdminContact=async function(){const name=document.getElementById('admin-name').value.trim(),role=document.getElementById('admin-role-field').value.trim(),contact=document.getElementById('admin-contact').value.trim();try{await setDoc(doc(db,'door_settings','config'),{adminContact:{name,role,contact}},{merge:true});toast('บันทึกข้อมูลติดต่อ Admin เรียบร้อย','ok');}catch(e){toast('บันทึกไม่สำเร็จ','err');}};
+
+// ── QR ──
+window.renderQRGrid=function(){
+  const q=(document.getElementById('qrSearch')?.value||'').toLowerCase(),zf=document.getElementById('qrZoneFilter')?.value||'';
+  const filtered=allDoors.filter(d=>(!q||d.code?.toLowerCase().includes(q)||d.name?.toLowerCase().includes(q))&&(!zf||d.zone===zf));
+  const grid=document.getElementById('qrGrid');if(!grid)return;
+  grid.innerHTML=filtered.slice(0,60).map(d=>{const sel=qrSelected.has(d.id);return '<div style="background:#fff;border:2px solid '+(sel?'#2266FF':'var(--border)')+';border-radius:10px;padding:10px;text-align:center;cursor:pointer;transition:all .15s;position:relative" onclick="toggleQRSelect(\''+d.id+'\')" id="qrcard-'+d.id+'">'+(sel?'<div style="position:absolute;top:5px;right:5px;width:18px;height:18px;background:#2266FF;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:800">✓</div>':'')+'<div style="font-size:10px;font-weight:800;color:var(--fg);margin-bottom:6px">'+d.code+'</div><div id="qrmini-'+d.id+'" style="width:64px;height:64px;margin:0 auto 5px;overflow:hidden;display:flex;align-items:center;justify-content:center"></div><div style="font-size:8px;color:var(--muted);line-height:1.3">'+d.name.split(' ').slice(-3).join(' ')+'</div><div style="font-size:8px;color:var(--dim)">'+d.zone+'</div></div>';}).join('');
+  setTimeout(()=>{filtered.slice(0,60).forEach(d=>{const c=document.getElementById('qrmini-'+d.id);if(c&&!c.dataset.generated){c.dataset.generated='1';try{new QRCode(c,{text:getQRUrl(d.code),width:60,height:60,colorDark:'#003087',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});}catch(e){}}});},100);
+  document.getElementById('qrSelectedCount').textContent=qrSelected.size;
+};
+
+function getQRUrl(code){const base=document.getElementById('qr-base-url')?.value.trim()||'https://wdsecurity.wd.com/inspect',param=document.getElementById('qr-param')?.value||'door';return base+'?'+param+'='+encodeURIComponent(code);}
+window.toggleQRSelect=function(id){if(qrSelected.has(id))qrSelected.delete(id);else qrSelected.add(id);renderQRGrid();};
+window.selectAllQR=function(){allDoors.forEach(d=>qrSelected.add(d.id));renderQRGrid();};
+window.refreshQR=function(){renderQRGrid();toast('อัปเดต URL','info');};
+window.printSelectedQR=function(){if(!qrSelected.size){toast('กรุณาเลือกประตูก่อน','err');return;}const doors=allDoors.filter(d=>qrSelected.has(d.id));const imgs={};doors.forEach(d=>{const c=document.getElementById('qrmini-'+d.id);if(c){const cv=c.querySelector('canvas');if(cv)imgs[d.id]=cv.toDataURL('image/png');}});const cardsHTML=doors.map(d=>{const url=getQRUrl(d.code),img=imgs[d.id]||'';return '<div class="qr-card"><div style="background:linear-gradient(135deg,#001840,#002d78,#1a56cc);padding:10px 12px"><div style="font-size:7px;font-weight:800;letter-spacing:1.5px;color:rgba(255,255,255,.6);text-transform:uppercase;margin-bottom:2px">WESTERN DIGITAL — SECURITY</div><div style="font-size:13px;font-weight:900;color:#fff">SOC 614984</div></div><div style="height:2px;background:linear-gradient(90deg,#2266FF,#00E5D1)"></div><div style="display:flex;align-items:center;gap:8px;padding:7px 12px;background:#EBF5FF;border-bottom:1px solid #DBEAFE"><div style="background:#fff;border:1.5px solid #00E5D1;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:800;color:#003087">'+d.code+'</div><div><div style="font-size:9px;font-weight:700;color:#1A2332">'+d.name+'</div><div style="font-size:7px;color:#4A5E75">'+d.zone+'</div></div></div><div style="padding:10px 12px;display:flex;gap:10px"><div style="width:72px;height:72px;background:#fff;border-radius:6px;border:1px solid #E2E8F0;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:2px">'+(img?'<img src="'+img+'" style="width:68px;height:68px;display:block">':'')+'</div><div style="flex:1"><div style="font-size:7px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#8A9AB0;margin-bottom:1px">TYPE</div><div style="font-size:9px;font-weight:700;color:#1A2332;margin-bottom:5px">'+(d.type||'Fire Exit Door')+'</div><div style="font-size:7px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#8A9AB0;margin-bottom:1px">ZONE</div><div style="font-size:9px;font-weight:700;color:#1A2332">'+d.zone+'</div></div></div><div style="font-size:7px;padding:5px 12px;background:#F0FDF4;border-top:1px solid #BBF7D0;color:#16A34A;word-break:break-all">'+url+'</div><div style="display:flex;justify-content:space-between;padding:5px 12px;background:#F8FAFC;border-top:1px solid #E2E8F0"><span style="font-size:7px;font-weight:700;color:#8A9AB0">'+d.code+'</span><span style="font-size:7px;font-weight:700;color:#8A9AB0">WD Security</span></div></div>';}).join('');const w=window.open('','_blank','width=900,height=700');w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800;900&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"Manrope",sans-serif;background:#fff;padding:10mm}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}@page{size:A4;margin:10mm}@media print{body{padding:0}}.qr-card{background:#fff;border-radius:8px;overflow:hidden;border:1px solid #E2E8F0;page-break-inside:avoid}</style></head><body><div class="grid">'+cardsHTML+'</div><script>window.onload=function(){window.print();}<\/script></body></html>');w.document.close();toast('กำลังพิมพ์ QR '+doors.length+' ใบ','info');};
+
+// ── SUBMISSIONS ──
+function updateSubsUI(){renderSubsTable();document.getElementById('badge-subs').textContent=allSubmissions.length;renderActivityFeed();}
+window.renderSubsTable=function(){const zf=document.getElementById('subZoneFilter')?.value||'',rf=document.getElementById('subResultFilter')?.value||'',q=(document.getElementById('subSearch')?.value||'').toLowerCase();const filtered=allSubmissions.filter(s=>(!zf||s.zone===zf)&&(!rf||s.overall===rf)&&(!q||s.doorCode?.toLowerCase().includes(q)||s.inspectorName?.toLowerCase().includes(q)));const rm={ok:{label:'ผ่าน',cls:'bg'},cond:{label:'เงื่อนไข',cls:'bo'},fail:{label:'ไม่ผ่าน',cls:'br'}};document.getElementById('subsTableBody').innerHTML=filtered.map(s=>{const r=rm[s.overall]||{label:s.overall||'—',cls:'bd'};const ts=s.timestamp?(s.timestamp.toDate?s.timestamp.toDate():new Date(s.timestamp)):null;const pct=s.totalItems>0?Math.round(s.answeredItems/s.totalItems*100):0;return '<tr><td style="font-size:11px">'+(ts?ts.toLocaleString('th-TH'):'—')+'</td><td style="font-weight:600">'+s.inspectorName+'</td><td><code style="font-size:11px;background:#F1F5F9;padding:2px 7px;border-radius:4px;font-weight:700">'+s.doorCode+'</code></td><td>'+s.zone+'</td><td>'+s.shift+'</td><td><span class="badge '+r.cls+'">'+r.label+'</span></td><td style="font-size:12px;font-weight:700">'+pct+'%</td></tr>';}).join('');const el=document.getElementById('subCount');if(el)el.textContent='แสดง '+filtered.length+' จาก '+allSubmissions.length;};
+
+function renderActivityFeed(){const filtered=actFilter==='all'?allSubmissions:allSubmissions.filter(s=>s.overall===actFilter);const feed=document.getElementById('activityFeed');const rm={ok:{label:'ผ่าน',color:'#22C55E'},cond:{label:'เงื่อนไข',color:'#F59E0B'},fail:{label:'ไม่ผ่าน',color:'#EF4444'}};feed.innerHTML=filtered.slice(0,30).map((s,i,arr)=>{const r=rm[s.overall]||{label:'—',color:'#8A9AB0'};const ts=s.timestamp?(s.timestamp.toDate?s.timestamp.toDate():new Date(s.timestamp)):null;return '<div class="feed-item"><div class="feed-dot-wrap"><div class="feed-dot" style="background:'+r.color+'"></div>'+(i<arr.length-1?'<div class="feed-line"></div>':'')+'</div><div class="feed-content"><div class="feed-title">'+s.doorCode+' — '+s.doorName+'</div><div class="feed-sub"><b>'+s.inspectorName+'</b> · '+s.zone+' · <span style="color:'+r.color+';font-weight:700">'+r.label+'</span></div>'+(ts?'<div class="feed-time">'+ts.toLocaleString('th-TH')+'</div>':'')+'</div></div>';}).join('')||'<div style="text-align:center;padding:24px;color:var(--dim);font-size:13px">ไม่มีข้อมูล</div>';}
+window.filterActivity=function(btn,filter){actFilter=filter;document.querySelectorAll('#actTabs .tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');renderActivityFeed();};
+
+// ── EXPORT ──
+window.exportDoorCSV=function(){const BOM='\uFEFF',h=['รหัส','ชื่อ','โซน','ประเภท','ตำแหน่ง','สถานะ'];const rows=allDoors.map(d=>[d.code,d.name,d.zone,d.type||'',d.location||'',d.status||''].map(v=>'"'+v+'"').join(','));download(BOM+[h.join(','),...rows].join('\n'),'WD_Doors.csv','text/csv;charset=utf-8');toast('Export CSV เรียบร้อย','ok');};
+window.exportSubsCSV=function(){const BOM='\uFEFF',h=['วันที่','Inspector','รหัสประตู','ชื่อประตู','โซน','กะ','ผล'];const rows=allSubmissions.map(s=>{const ts=s.timestamp?(s.timestamp.toDate?s.timestamp.toDate():new Date(s.timestamp)):null;return[ts?ts.toLocaleString('th-TH'):'',s.inspectorName,s.doorCode,s.doorName,s.zone,s.shift,s.overall].map(v=>'"'+(v||'')+'"').join(',');});download(BOM+[h.join(','),...rows].join('\n'),'WD_Submissions.csv','text/csv;charset=utf-8');toast('Export CSV เรียบร้อย','ok');};
+function download(content,filename,mime){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type:mime}));a.download=filename;a.click();}
+
+// ── SEED (safe / idempotent) ──
+async function deleteAllDoors(){const snap=await getDocs(collection(db,'door_doors'));const docs=snap.docs;let deleted=0;while(deleted<docs.length){const batch=writeBatch(db);docs.slice(deleted,deleted+500).forEach(d=>batch.delete(d.ref));await batch.commit();deleted+=Math.min(500,docs.length-deleted);setSeed('กำลังลบข้อมูลเก่า...',Math.round(deleted/docs.length*30),'ลบ '+deleted+'/'+docs.length);}};
+
+async function insertDoors(){const doorData=[];DOOR_ZONES.forEach(z=>{for(let i=1;i<=z.count;i++)doorData.push({code:z.prefix+String(i).padStart(3,'0'),name:z.name+' #'+i,zone:z.zone,type:'Fire Exit Door',location:z.zone,status:'ปกติ'});});let ins=0;while(ins<doorData.length){const batch=writeBatch(db);doorData.slice(ins,ins+500).forEach(door=>batch.set(doc(collection(db,'door_doors')),door));await batch.commit();ins+=Math.min(500,doorData.length-ins);setSeed('กำลัง Seed ประตู...',30+Math.round(ins/doorData.length*70),ins+'/'+doorData.length);}return doorData.length;}
+
+window.seedAllData=async function(){if(!requireSuperAdmin())return;const btn=document.getElementById('btnSeedAll');btn.disabled=true;try{setSeed('เริ่มต้น...',5,'');await deleteAllDoors();const n=await insertDoors();setSeed('เสร็จสมบูรณ์!',100,n+' ประตู ✓');await seedChecklists();await seedShifts();toast('Seed ข้อมูลทั้งหมดเสร็จแล้ว!','ok');hideSeed();}catch(e){toast('Seed ไม่สำเร็จ: '+e.message,'err');}btn.disabled=false;};
+window.seedChecklists=async function(){if(!requireSuperAdmin())return;const cls=getDefaultChecklists();const batch=writeBatch(db);const existSnap=await getDocs(collection(db,'door_checklists'));existSnap.forEach(d=>batch.delete(d.ref));cls.forEach(c=>batch.set(doc(collection(db,'door_checklists')),c));await batch.commit();await loadChecklists();toast('Seed Checklists เรียบร้อย','ok');};
+window.seedShifts=async function(){if(!requireSuperAdmin())return;await setDoc(doc(db,'door_settings','config'),{shifts:getDefaultShifts(),adminContact:{name:'Sunpit Tanoobun',role:'Security Supervisor — REO MFM',contact:'ext. 1234 · sunpit@wdc.com'}},{merge:true});toast('Seed Shifts เรียบร้อย','ok');};
+window.confirmCleanReseed=function(){if(!requireSuperAdmin())return;document.getElementById('confirmTitle').textContent='ล้างประตูซ้ำ + Seed ใหม่';document.getElementById('confirmMsg').textContent='จะลบประตูทั้งหมด '+allDoors.length+' รายการ แล้ว Seed ใหม่ '+EXPECTED_DOORS+' รายการ';document.getElementById('confirmBtn').onclick=async()=>{closeModal('modal-confirm');const btn=document.getElementById('btnSeedAll');btn.disabled=true;await deleteAllDoors();const n=await insertDoors();setSeed('เสร็จแล้ว!',100,n+' รายการ ✓');toast('ล้างซ้ำและ Seed ใหม่เสร็จแล้ว','ok');hideSeed();btn.disabled=false;};openModal('modal-confirm');};
+window.confirmDeleteAllDoors=function(){if(!requireSuperAdmin())return;document.getElementById('confirmTitle').textContent='ลบประตูทั้งหมด';document.getElementById('confirmMsg').textContent='จะลบประตูทั้งหมด '+allDoors.length+' รายการ ยืนยันหรือไม่?';document.getElementById('confirmBtn').onclick=async()=>{closeModal('modal-confirm');await deleteAllDoors();toast('ลบประตูทั้งหมดเรียบร้อย','info');document.getElementById('seedBar').classList.remove('show');};openModal('modal-confirm');};
+
+function getDefaultChecklists(){return[{id:'ext',name:'สภาพภายนอก',icon:'shield',order:1,items:['บานประตูไม่มีรอยบุบหรือเสียหาย','วงกบประตูและซีลยางสภาพสมบูรณ์','ป้ายทางออกฉุกเฉินชัดเจนและมองเห็นได้','พื้นที่หน้าประตูไม่มีสิ่งกีดขวาง']},{id:'hw',name:'Hardware & กลไก',icon:'tool',order:2,items:['บานพับประตูสภาพดี ไม่หลวม ไม่ขึ้นสนิม','มือจับและกลอนประตูทำงานได้ปกติ','อุปกรณ์ Panic Bar ทำงานได้','Door Closer ปิดประตูอัตโนมัติได้','ประตูเปิด-ปิดได้สะดวก ไม่ติดขัด']},{id:'alarm',name:'Alarm & ระบบสัญญาณ',icon:'bell',order:3,items:['สัญญาณเตือนภัยบริเวณประตูทำงาน','แสงฉุกเฉิน (Emergency Light) ทำงาน','ป้าย Exit ติดไฟสว่างสมบูรณ์']}];}
+
+// ── CONFIRM DELETE (single) ──
+window.confirmDelete=function(type,id,label){document.getElementById('modalDeleteTitle').textContent='ยืนยันการลบ';document.getElementById('modalDeleteMsg').textContent='ต้องการลบ "'+label+'" ออกจากระบบ?';document.getElementById('modalDeleteConfirm').onclick=async()=>{const coll=type==='door'?'door_doors':type==='user'?'door_users':'door_submissions';await deleteDoc(doc(db,coll,id));closeModal('modal-delete');toast('ลบเรียบร้อย','info');};openModal('modal-delete');};
+
+// ── NAV ──
+window.showPage=function(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const navMap={'pg-dashboard':'nav-dashboard','pg-doors':'nav-doors','pg-users':'nav-users','pg-checklists':'nav-checklists','pg-shifts':'nav-shifts','pg-qr':'nav-qr','pg-submissions':'nav-submissions','pg-activity':'nav-activity','pg-admins':'nav-admins','pg-settings':'nav-settings'};
+  if(navMap[id]) document.getElementById(navMap[id])?.classList.add('active');
+  document.getElementById('lastUpdate').textContent=new Date().toLocaleString('th-TH');
+  if(id==='pg-activity'){renderActivityFeed();document.getElementById('badge-alert').textContent='0';document.getElementById('notifDot').style.display='none';}
+  if(id==='pg-qr') renderQRGrid();
+  if(id==='pg-admins') {
+    if(!isSuperAdmin()){toast('เฉพาะ Superadmin เท่านั้น','err');showPage('pg-dashboard');return;}
+    loadAdminAccounts();
+  }
+  if(id==='pg-settings' && !isSuperAdmin()){toast('เฉพาะ Superadmin เท่านั้น','err');showPage('pg-dashboard');return;}
+};
+
+init();
+</script>
+</body>
+</html>
